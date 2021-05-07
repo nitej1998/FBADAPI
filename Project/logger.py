@@ -32,7 +32,7 @@ def logging_handler():
     returns : logger object
     """
     log_filename = "WM_Flow_Logs_" + str(datetime.now().strftime('%d-%m-%Y')) + '.log'
-    log_file_path = ""
+    log_file_path = str(os.getcwd())+f'\\Log files\\{log_filename}'
     log_format = '%(asctime)s- %(levelname)-8s- %(filename)s- %(funcName)s- %(lineno)s- %(message)s'
 
     logger = logging.getLogger()
@@ -54,7 +54,7 @@ def logging_handler():
 
     formatter = logging.Formatter(log_format,datefmt=str(get_time()))
     
-    file_handler = logging.FileHandler(log_filename)
+    file_handler = logging.FileHandler(log_file_path)
     file_handler.setFormatter(formatter)
     stream_handler = logging.StreamHandler()
 
