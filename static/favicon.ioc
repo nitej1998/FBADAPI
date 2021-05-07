@@ -1,5 +1,0 @@
-<head>
-<title>My Webpage</title>
-<link  rel ='stylesheet'type="text/css" href="./static/style.css">
-<link rel="shortcut icon" href="{{ url_for('static', filename='scon.ico') }}">
-</head>

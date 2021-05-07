@@ -4,6 +4,7 @@ from flask import jsonify,request,g,make_response,send_from_directory
 from datetime import datetime,timedelta
 from .logger import logger,get_time
 from .models import DB
+from .advisment import dashboardfilter
 
 import traceback
 import os
@@ -127,6 +128,20 @@ def create_advisement():
     responce_dic = g.db.execute(query,values,as_dic = True)
     return jsonify(responce_dic)
 
-
+@app.route("/ongoing-team-advisement",methods=["GET","POST"])
+def ongoing_team_advisement():
+    data = request.form
+    data = data.to_dict()
+    data = json.loads(data['file'])
+    responce_dic = dashboardfilter(g.db,data,1,0,False,True,True)
+    return jsonify(responce_dic)
+    
+@app.route("/completed-team-advisement",methods=["GET","POST"])
+def completed_team_advisement():
+    data = request.form
+    data = data.to_dict()
+    data = json.loads(data['file'])
+    responce_dic = dashboardfilter(g.db,data,1,1,False,True,True)
+    return jsonify(responce_dic)
 
 		
