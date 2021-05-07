@@ -4,7 +4,7 @@ from flask import jsonify,request,g,make_response,send_from_directory
 from datetime import datetime,timedelta
 from .logger import logger,get_time
 from .models import DB,session_dic
-from .advisment import dashboardfilter
+from .advisment import dashboardfilter,scheduling_page_insertion
 
 import traceback
 import os
@@ -25,7 +25,6 @@ def after_request(response):
     """ Logging after every request. and closing database connection """
     # This avoids the duplication of registry in the log,
     # since that 500 is already logged via @app.errorhandler.
-    # logger.info('Response : %s', response)   
     
     response.headers['Content-Length'] = None
     response.headers['Content-Type'] = None
@@ -46,9 +45,10 @@ def after_request(response):
                       response.status)
     
     if g.db is not None:
-        print ('closing connection...')
-        # g.db.close()
-    
+        logger.info('closing connection...')
+        g.db.close()
+        logger.info('connection closed')
+
     return response
 
 @app.errorhandler(Exception)
@@ -71,7 +71,6 @@ def exceptions(e):
 
 @app.route('/favicon.ico') 
 def favicon(): 
-    # return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
     return jsonify("dont use")
 
 @app.route("/")
@@ -106,6 +105,7 @@ def create_advisement():
     query = "EXEC InsertAdvisement @UserId = ?,@AdName = ?,@AdId = ?,@AdvertiserId = ?,@LocationId = ?,@AdCategoryId = ?,@FbKeyWordId = ?,@StatusId = ?,@UniqueAtId = ?,@UniqueAtCreative = ?"
     values = (data["UserId"],data["AdName"],data["AdId"],data["AdvertiserId"],data["LocationId"],data["AdCategoryId"],data["FbKeyWordId"],data["StatusId"],data["UniqueAtId"],data["UniqueAtCreative"])
     responce_dic = g.db.execute(query,values,as_dic = True)
+    logger.info(f"New Advisement created by user {data['UserId']} and Aid is {responce_dic}")
     return jsonify(responce_dic)
 
 @app.route("/ongoing-team-advisement",methods=["GET","POST"])
@@ -124,4 +124,78 @@ def completed_team_advisement():
     responce_dic = dashboardfilter(g.db,data,1,1,False,True,True)
     return jsonify(responce_dic)
 
-		
+@app.route("/get-advisement",methods=["GET","POST"])
+def get_advisement(dic = {}):
+    responce_dic = {"Create Advisement":{},"Schedule Advisement":{}}
+    if dic != {}:
+        values = (dic["AId"],)
+    else:
+        data = request.form
+        data = data.to_dict()
+        data = json.loads(data['file'])
+        values = (data["Aid"],)
+
+    query = "SELECT * from ViewAd where AId = ?"
+    advisement_dic = g.db.execute(query,values,as_dic = True)
+    responce_dic["AId"] = advisement_dic["Aid"]  
+    responce_dic["ProcessNumber"] = advisement_dic["ProcessNumber"]  
+
+    responce_dic["Create Advisement"] = {
+                                            "AdName":advisement_dic["AdName"],
+                                            "AdId":advisement_dic["AdId"],
+                                            "Advertiser":advisement_dic["Advertiser"],
+                                            "Location":advisement_dic["Location"],
+                                            "AdCategory":advisement_dic["AdCategory"],
+                                            "FbKeyWord":advisement_dic["FbKeyWord"],
+                                            "Status":advisement_dic["Status"],
+                                            "UniqueAtCreative":advisement_dic["UniqueAtCreative"],
+                                            "UniqueAtId":advisement_dic["UniqueAtId"]}
+    
+    if int(advisement_dic["ProcessNumber"] > 1):
+        responce_dic["Schedule Advisement"]["Data"] = {
+                                        "ScheduleMethod":advisement_dic["ScheduleMethod"],
+                                        "RecurringMethod":advisement_dic["RecurringMethod"],
+                                        "SD":advisement_dic["SD"],
+                                        "ED":advisement_dic["ED"],
+                                        "SM":advisement_dic["SM"],
+                                        "EM":advisement_dic["EM"],
+                                        "SY":advisement_dic["SY"],
+                                        "EY":advisement_dic["EY"],
+                                        "YearType":advisement_dic["YearType"]}
+        responce_dic["Schedule Advisement"]["DropDown"] = {"Years":session_dic["Years"],"Months":session_dic["Months"]}
+    else:
+        responce_dic["Schedule Advisement"]["Data"] = {}
+        responce_dic["Schedule Advisement"]["DropDown"] = {"Years":session_dic["Years"],"Months":session_dic["Months"]}
+    
+    return jsonify(responce_dic)
+
+@app.route("/schedule-advisement",methods=["GET", "POST"])
+def schedule_advisement():
+    data = request.form
+    data = data.to_dict()
+    data = json.loads(data['file'])
+    scheduling_page_insertion(data,g.db)
+    return get_advisement(dic = {"AId":data['AId']})
+
+@app.route("/mark-as-complete-advisement",methods=["GET", "POST"])
+def mark_as_complete_advisement():
+    data = request.form
+    data = data.to_dict()
+    data = json.loads(data['file'])
+    query = "EXEC UpdateMarkAsCompleteAdvisement @UserId = ?,@AId = ?"
+    values = (data["UserId"],data["AId"])
+    g.db.update(query,values,as_dic = True)
+    logger.info("")
+    return dashboardfilter(g.db,data,1,0,False,True,True) # need to add data
+
+@app.route("/prioritize-advisement",methods=["GET", "POST"])
+def prioritize_advisement():
+    data = request.form
+    data = data.to_dict()
+    data = json.loads(data['file'])
+    query = "EXEC UpdatePrioritizeAdvisement @UserId = ?,@AId = ?"
+    values = (data["UserId"],data["AId"])
+    g.db.update(query,values,as_dic = True)
+    logger.info("")
+    return dashboardfilter(g.db,data,1,0,False,True,True) # need to add data
+

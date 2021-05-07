@@ -1,10 +1,5 @@
 {
-    "YourLocalPath": "D:\\home\\ProcessingUnit\\LocalDocuments",
     "Envirolment": "Development",
     "LoggingLevel": "DEBUG",
-    "DataBase":"FBADLIBRARY",
-    "Server":"wmflowdbstg.database.windows.net",
-    "User":"flowdbstg",
-    "Password":"$t@g1ngdbFl0w",
-    "Driver": "ODBC+Driver+17+for+SQL+Server"
+    "Development":"DRIVER={ODBC Driver 17 for SQL Server};SERVER=wmflowdbstg.database.windows.net;DATABASE=FBADLIBRARY;UID=flowdbstg;PWD=$t@g1ngdbFl0w;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30"
   }
