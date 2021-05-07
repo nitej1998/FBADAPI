@@ -3,32 +3,12 @@ from Project import app
 from flask import jsonify,request,g,make_response,send_from_directory
 from datetime import datetime,timedelta
 from .logger import logger,get_time
-from .models import DB
+from .models import DB,session_dic
 from .advisment import dashboardfilter
 
 import traceback
 import os
 import json
-
-# creating a session dic which will have all required data that need to be pulled from data base all the time 
-# as a result which helps to reduce no of hits to data bass and increse speed of the request also 
-logger.info('connecting to database for session dic creation...')
-db = DB()
-session_dic = {}
-query = "EXEC GetLocation"
-session_dic["Location"] = db.execute(query)
-query = "EXEC GetAdvertiser"
-session_dic["Advertiser"] = db.execute(query)
-query = "EXEC GetAdCategory"
-session_dic["AdCategory"] = db.execute(query)
-query = "EXEC GetFbKeyWord"
-session_dic["FbKeyWord"] = db.execute(query)
-query = "EXEC GetStatus"
-session_dic["FbStatus"] = db.execute(query)
-logger.info('Session dic creation completed :)')
-logger.info('Disconnecting database object utilized for session cereation')
-# need to add
-logger.info('dataabse disconnected')
 
 @app.before_request
 def before_request():

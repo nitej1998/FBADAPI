@@ -5,7 +5,7 @@ import logging
 
 from sqlalchemy import create_engine, exc
 from time import time
-from .logger import config_dic
+from .logger import config_dic,logger
 from datetime import datetime,timedelta,date
 from dateutil.rrule import rrule, MONTHLY
 
@@ -172,3 +172,22 @@ class DB(object):
             self.error = str(e)
             return False
     
+# creating a session dic which will have all required data that need to be pulled from data base all the time 
+# as a result which helps to reduce no of hits to data bass and increse speed of the request also 
+logger.info('connecting to database for session dic creation...')
+db = DB()
+session_dic = {}
+query = "EXEC GetLocation"
+session_dic["Location"] = db.execute(query)
+query = "EXEC GetAdvertiser"
+session_dic["Advertiser"] = db.execute(query)
+query = "EXEC GetAdCategory"
+session_dic["AdCategory"] = db.execute(query)
+query = "EXEC GetFbKeyWord"
+session_dic["FbKeyWord"] = db.execute(query)
+query = "EXEC GetStatus"
+session_dic["FbStatus"] = db.execute(query)
+logger.info('Session dic creation completed :)')
+logger.info('Disconnecting database object utilized for session cereation')
+# need to add
+logger.info('dataabse disconnected')
