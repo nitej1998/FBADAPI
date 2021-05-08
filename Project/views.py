@@ -105,8 +105,12 @@ def create_advisement():
     query = "EXEC InsertAdvisement @UserId = ?,@AdName = ?,@AdId = ?,@AdvertiserId = ?,@LocationId = ?,@AdCategoryId = ?,@FbKeyWordId = ?,@StatusId = ?,@UniqueAtId = ?,@UniqueAtCreative = ?"
     values = (data["UserId"],data["AdName"],data["AdId"],data["AdvertiserId"],data["LocationId"],data["AdCategoryId"],data["FbKeyWordId"],data["StatusId"],data["UniqueAtId"],data["UniqueAtCreative"])
     responce_dic = g.db.execute(query,values,as_dic = True)
-    logger.info(f"New Advisement created by user {data['UserId']} and Aid is {responce_dic}")
-    return jsonify(responce_dic)
+    if responce_dic["IsCreated"] == 1:
+        logger.info(f"New Advisement created by user {data['UserId']} and Aid is {responce_dic}")
+        return get_advisement(dic = {"AId":responce_dic['AId']})
+    else:
+        logger.info(f"New Advisement Creation failed :( ")
+        return jsonify(False)
 
 @app.route("/ongoing-team-advisement",methods=["GET","POST"])
 def ongoing_team_advisement():
@@ -137,7 +141,7 @@ def get_advisement(dic = {}):
 
     query = "SELECT * from ViewAd where AId = ?"
     advisement_dic = g.db.execute(query,values,as_dic = True)
-    responce_dic["AId"] = advisement_dic["Aid"]  
+    responce_dic["AId"] = advisement_dic["AId"]  
     responce_dic["ProcessNumber"] = advisement_dic["ProcessNumber"]  
 
     responce_dic["Create Advisement"] = {
