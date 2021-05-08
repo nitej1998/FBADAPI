@@ -122,7 +122,7 @@ def scheduling_page_insertion(dic,db):
     uniqueid = str(aid) + '_0'
     
     if onetimevalue == True:
-        query = "INSERT INTO SchedulingAd([AId],[ScheduleMethod],[SD],[ED],[IsRPAProcessed],[Counter],[UniqueId],[CreatedBy],[ModifiedBy]) VALUES(?,?,?,?,?,?,?,?,?,?)"
+        query = "INSERT INTO SchedulingAd([AId],[ScheduleMethod],[SD],[ED],[IsRPAProcessed],[Counter],[UniqueId],[CreatedBy],[ModifiedBy]) VALUES(?,?,?,?,?,?,?,?,?)"
         values = (dic['AId'],"OneTime",dic['SD'],dic['ED'],0,counter,uniqueid,dic['UserId'],dic['UserId'])
     else:
         if dic["RecurringMethod"] == "month":
@@ -196,6 +196,6 @@ def scheduling_page_insertion(dic,db):
 
     db.update(query,values)
 
-    query = "UPDATE Ad SET Modidfiedby = ?,ModifiedDate = Getdate(), [ProcessNumber] = CASE when  ProcessNumber = 1 then 2 else ProcessNumber end where Id = ?"
+    query = "UPDATE Ad SET Modifiedby = ?,ModifiedDate = Getdate(), [ProcessNumber] = CASE when  ProcessNumber = 1 then 2 else ProcessNumber end where Id = ?"
     values = (dic['UserId'],aid)
     db.update(query,values)

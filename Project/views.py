@@ -135,7 +135,13 @@ def get_advisement(dic = {}):
     advisement_dic = g.db.execute(query,values,as_dic = True)
     responce_dic["AId"] = advisement_dic["AId"]  
     responce_dic["ProcessNumber"] = advisement_dic["ProcessNumber"]  
-
+    if responce_dic["ProcessNumber"] == 1:
+        responce_dic["UiProcess"] = 1
+    elif responce_dic["ProcessNumber"] > 1:
+        responce_dic["UiProcess"] = 2
+    else:
+        responce_dic["UiProcess"] = 1
+ 
     responce_dic["Create Advisement"] = {
                                             "AdName":advisement_dic["AdName"],
                                             "AdId":advisement_dic["AdId"],
@@ -151,8 +157,8 @@ def get_advisement(dic = {}):
         responce_dic["Schedule Advisement"]["Data"] = {
                                         "ScheduleMethod":advisement_dic["ScheduleMethod"],
                                         "RecurringMethod":advisement_dic["RecurringMethod"],
-                                        "SD":advisement_dic["SD"],
-                                        "ED":advisement_dic["ED"],
+                                        "SD":str(advisement_dic["SD"].strftime("%Y-%m-%d")),
+                                        "ED":str(advisement_dic["ED"].strftime("%Y-%m-%d")),
                                         "SM":advisement_dic["SM"],
                                         "EM":advisement_dic["EM"],
                                         "SY":advisement_dic["SY"],
