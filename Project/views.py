@@ -112,21 +112,13 @@ def create_advisement():
         logger.info(f"New Advisement Creation failed :( ")
         return jsonify(False)
 
-@app.route("/ongoing-team-advisement",methods=["GET","POST"])
-def ongoing_team_advisement():
+@app.route("/schedule-advisement",methods=["GET", "POST"])
+def schedule_advisement():
     data = request.form
     data = data.to_dict()
     data = json.loads(data['file'])
-    responce_dic = dashboardfilter(g.db,data,1,0,False,True,True)
-    return jsonify(responce_dic)
-    
-@app.route("/completed-team-advisement",methods=["GET","POST"])
-def completed_team_advisement():
-    data = request.form
-    data = data.to_dict()
-    data = json.loads(data['file'])
-    responce_dic = dashboardfilter(g.db,data,1,1,False,True,True)
-    return jsonify(responce_dic)
+    scheduling_page_insertion(data,g.db)
+    return get_advisement(dic = {"AId":data['AId']})
 
 @app.route("/get-advisement",methods=["GET","POST"])
 def get_advisement(dic = {}):
@@ -173,13 +165,21 @@ def get_advisement(dic = {}):
     
     return jsonify(responce_dic)
 
-@app.route("/schedule-advisement",methods=["GET", "POST"])
-def schedule_advisement():
-    data = request.form
-    data = data.to_dict()
-    data = json.loads(data['file'])
-    scheduling_page_insertion(data,g.db)
-    return get_advisement(dic = {"AId":data['AId']})
+@app.route("/ongoing-team-advisement",methods=["GET","POST"])
+def ongoing_team_advisement():
+    # data = request.form
+    # data = data.to_dict()
+    # data = json.loads(data['file'])
+    responce_dic = dashboardfilter(g.db,{},1,0,False,True,True)
+    return jsonify(responce_dic)
+    
+@app.route("/completed-team-advisement",methods=["GET","POST"])
+def completed_team_advisement():
+    # data = request.form
+    # data = data.to_dict()
+    # data = json.loads(data['file'])
+    responce_dic = dashboardfilter(g.db,{},1,1,False,True,True)
+    return jsonify(responce_dic)
 
 @app.route("/mark-as-complete-advisement",methods=["GET", "POST"])
 def mark_as_complete_advisement():

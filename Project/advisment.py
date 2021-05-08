@@ -22,10 +22,10 @@ def dashboardfilter(db,dic,module,record_status,for_user = False,advertiser_need
     filter_adname = False
 
     dic = {k.lower(): v for k, v in dic.items()}
-    userid = dic["userid"]
-    dic.pop('isdefault')
-    if for_user == False:
-        dic.pop('userid')
+    # userid = dic["userid"]
+    # dic.pop('isdefault')
+    # if for_user == False:
+    #     dic.pop('userid')
     result_dic = {}
     if 'startdate'  in dic:
         datefilter = True
@@ -65,9 +65,7 @@ def dashboardfilter(db,dic,module,record_status,for_user = False,advertiser_need
         else:
             query = 'EXEC GetCompletedadvisement'
 
-    values = (userid,)
-
-    df = db.execute(query,as_dataframe=True,params=values)
+    df = db.execute(query,as_dataframe=True)
     original_columns = list(df.columns)
     if df.empty == False:
         df["StartDate"] = pd.to_datetime(df["StartDate"],format = '%d/%m/%Y %H:%M')
