@@ -61,9 +61,9 @@ def dashboardfilter(db,dic,module,record_status,for_user = False,advertiser_need
 
     if module == 1:
         if record_status == 0:
-            query = 'EXEC GetOngoingadvisement @UserId = ?'	
+            query = 'EXEC GetOngoingadvisement'	
         else:
-            query = 'EXEC GetCompletedadvisement @UserId = ?'
+            query = 'EXEC GetCompletedadvisement'
 
     values = (userid,)
 
@@ -117,7 +117,7 @@ def scheduling_page_insertion(dic,db):
     Args:
         dic ([dic]): consist of all input peramaters required to create a schedule for report
     """
-    rpa_process = 0
+    # rpa_process = 0
     aid = dic['AId']
     onetimevalue = dic["OneTimeValue"]
     counter = 0
@@ -149,7 +149,7 @@ def scheduling_page_insertion(dic,db):
             ed = dic["EY"] + '-' + em + '-' + ed
             
             query = "INSERT INTO SchedulingAd([AId],[ScheduleMethod],[RecurringMethod],[SD],[ED],[SM],[EM],[SY],[EY],[IsRPAProcessed],[Counter],[UniqueId],[CreatedBy],[ModifiedBy]) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-            values = (dic['AId'],"Recurring",dic["RecurringMethod"],dic['SD'],dic['ED'],dic['SM'],dic['EM'],dic['SY'],dic['EY'],0,counter,uniqueid,dic['UserId'],dic['UserId'])
+            values = (dic['AId'],"Recurring",dic["RecurringMethod"],sd,ed,dic['SM'],dic['EM'],dic['SY'],dic['EY'],0,counter,uniqueid,dic['UserId'],dic['UserId'])
 
         elif dic["RecurringMethod"] == "quarter":
             m = session_dic["Months"].index(dic["SM"]) +1
@@ -183,23 +183,21 @@ def scheduling_page_insertion(dic,db):
             ed = dic["EY"] + '-' + m + '-' + d
 
             query = "INSERT INTO SchedulingAd([AId],[ScheduleMethod],[RecurringMethod],[SD],[ED],[SM],[EM],[SY],[EY],[IsRPAProcessed],[Counter],[UniqueId],[CreatedBy],[ModifiedBy]) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-            values = (dic['AId'],"Recurring",dic["RecurringMethod"],dic['SD'],dic['ED'],dic['SM'],dic['EM'],dic['SY'],dic['EY'],0,counter,uniqueid,dic['UserId'],dic['UserId'])
+            values = (dic['AId'],"Recurring",dic["RecurringMethod"],sd,ed,dic['SM'],dic['EM'],dic['SY'],dic['EY'],0,counter,uniqueid,dic['UserId'],dic['UserId'])
 
         elif dic["RecurringMethod"] == "year":
             if dic["YT"] == "calendar":
-                yt = 1
                 sd = dic["SY"] + '-' + '01'+ '-' + '01'
                 ed = dic["EY"] + '-' + '12'+ '-' + '31'
             elif dic["YT"] == "financial":
-                yt = 2
                 sd = dic["SY"] + '-' + '04' + '-' + '01'
                 ed = dic["EY"] + '-' + '03' + '-' + '30'
 
             query = "INSERT INTO SchedulingAd([AId],[ScheduleMethod],[RecurringMethod],[SD],[ED],[SY],[EY],[YearType],[IsRPAProcessed],[Counter],[UniqueId],[CreatedBy],[ModifiedBy]) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)"
-            values = (dic['AId'],"Recurring",dic["RecurringMethod"],dic['SD'],dic['ED'],dic['SY'],dic['EY'],dic["YT"],0,counter,uniqueid,dic['UserId'],dic['UserId'])
+            values = (dic['AId'],"Recurring",dic["RecurringMethod"],sd,ed,dic['SY'],dic['EY'],dic["YT"],0,counter,uniqueid,dic['UserId'],dic['UserId'])
 
     db.update(query,values)
 
-    query = "UPDATE Ad  SET [ProcessNumber] = CASE when  ProcessNumber = 1 then 2 else ProcessNumber end where Id = ?"
-    values = (aid,)
+    query = "UPDATE Ad SET Modidfiedby = ?,ModifiedDate = Getdate(), [ProcessNumber] = CASE when  ProcessNumber = 1 then 2 else ProcessNumber end where Id = ?"
+    values = (dic['UserId'],aid)
     db.update(query,values)
