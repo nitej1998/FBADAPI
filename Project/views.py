@@ -129,7 +129,7 @@ def get_advisement(dic = {}):
         data = request.form
         data = data.to_dict()
         data = json.loads(data['file'])
-        values = (data["Aid"],)
+        values = (data["AId"],)
 
     query = "SELECT * from ViewAd where AId = ?"
     advisement_dic = g.db.execute(query,values,as_dic = True)
