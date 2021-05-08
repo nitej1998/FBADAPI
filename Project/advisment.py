@@ -125,7 +125,11 @@ def scheduling_page_insertion(dic,db):
         query = "INSERT INTO SchedulingAd([AId],[ScheduleMethod],[SD],[ED],[IsRPAProcessed],[Counter],[UniqueId],[CreatedBy],[ModifiedBy]) VALUES(?,?,?,?,?,?,?,?,?)"
         values = (dic['AId'],"OneTime",dic['SD'],dic['ED'],0,counter,uniqueid,dic['UserId'],dic['UserId'])
     else:
-        if dic["RecurringMethod"] == "month":
+        if dic["RecurringMethod"] in ("daily","week"):
+            query = "INSERT INTO SchedulingAd([AId],[ScheduleMethod],[RecurringMethod],[SD],[ED],[IsRPAProcessed],[Counter],[UniqueId],[CreatedBy],[ModifiedBy]) VALUES(?,?,?,?,?,?,?,?,?,?)"
+            values = (dic['AId'],"Recurring",dic["RecurringMethod"],dic['SD'],dic['ED'],0,counter,uniqueid,dic['UserId'],dic['UserId'])
+
+        elif dic["RecurringMethod"] == "month":
             sd = dic["SY"] + '-' + str(session_dic["Months"].index(dic["SM"]) +1).zfill(2) + '-' + '01'
             em = str(session_dic["Months"].index(dic["EM"]) +1).zfill(2)
             year = int(dic["EY"])
