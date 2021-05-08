@@ -136,7 +136,7 @@ def get_advisement(dic = {}):
     responce_dic["AId"] = advisement_dic["AId"]  
     responce_dic["ProcessNumber"] = advisement_dic["ProcessNumber"]  
     if responce_dic["ProcessNumber"] == 1:
-        responce_dic["UiProcess"] = 1
+        responce_dic["UiProcess"] = 2
     elif responce_dic["ProcessNumber"] > 1:
         responce_dic["UiProcess"] = 2
     else:
