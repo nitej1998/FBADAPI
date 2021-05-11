@@ -94,7 +94,6 @@ def get_create_ad_inputs():
     responce_dic["Advertiser"] = g.db.execute(query)
     responce_dic["Location"] = session_dic["Location"]
     responce_dic["AdCategory"] = session_dic["AdCategory"]
-    # responce_dic["FbKeyWord"] = session_dic["FbKeyWord"]
     responce_dic["FbStatus"] = session_dic["FbStatus"]
     return jsonify(responce_dic)
 
@@ -103,20 +102,6 @@ def create_advisement():
     data = request.form
     data = data.to_dict()
     data = json.loads(data['file'])
-    # advertiser_dic = session_dic["Advertiser"]
-    # query = "EXEC GetAdvertiser"
-    # advertiser_dic = g.db.execute(query)
-    # advertiser_dic = [{i["LocationName"]:i["LocationId"]}  for i in advertiser_dic]
-    # if data["AdCategoryId"] in advertiser_dic:
-    #     data["AdCategoryId"] = advertiser_dic[data["AdCategoryId"]]
-    # else:
-    #     query = "Insert Into [Advertiser] Values (?,1,GETDATE(),GETDATE(),1,1)"
-    #     values = (data["AdCategoryId"],)
-    #     g.db.update(query)
-    #     query = "EXEC GetAdvertiser"
-    #     advertiser_dic = g.db.execute(query)
-    #     advertiser_dic = [{i["LocationName"]:i["LocationId"]}  for i in advertiser_dic]
-    #     data["AdCategoryId"] = advertiser_dic[data["AdCategoryId"]]
 
     query = "EXEC InsertAdvisement @UserId = ?,@AdName = ?,@AdId = ?,@Advertiser = ?,@LocationId = ?,@AdCategoryId = ?,@FbKeyWordId = ?,@StatusId = ?,@UniqueAtId = ?,@UniqueAtCreative = ?,@FbKeyWord = ?"
     values = (data["UserId"],data["AdName"],data["AdId"],data["AdvertiserId"],data["LocationId"],data["AdCategoryId"],1,data["StatusId"],data["UniqueAtId"],data["UniqueAtCreative"],data["FbKeyWordId"])
@@ -261,7 +246,7 @@ def file_names():
 
 @app.route('/download-file', methods = ["GET", "POST"])
 def download_file():
-    """ used to download files from FBAD application"""
+    """ used to download files from FBAD application """
     data = request.form
     data = data.to_dict()
     data = json.loads(data['file'])
