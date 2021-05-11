@@ -6,7 +6,7 @@ from datetime import datetime,timedelta
 
 from .views import session_dic
 from .logger import logger,config_dic
-from .azure import AZURE,getListOfFiles,create_directory_local,share_name
+# from .azure import AZURE,getListOfFiles,create_directory_local,share_name
 
 def dashboardfilter(db,dic,module,record_status,for_user = False,advertiser_needed = False,location_needed = False):
     """ will extract data from DB as per the filter applied
