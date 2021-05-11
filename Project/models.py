@@ -187,12 +187,10 @@ db = DB()
 session_dic = {}
 query = "EXEC GetLocation"
 session_dic["Location"] = db.execute(query)
-query = "EXEC GetAdvertiser"
-session_dic["Advertiser"] = db.execute(query)
 query = "EXEC GetAdCategory"
 session_dic["AdCategory"] = db.execute(query)
-query = "EXEC GetFbKeyWord"
-session_dic["FbKeyWord"] = db.execute(query)
+# query = "EXEC GetFbKeyWord"
+# session_dic["FbKeyWord"] = db.execute(query)
 query = "EXEC GetStatus"
 session_dic["FbStatus"] = db.execute(query)
 

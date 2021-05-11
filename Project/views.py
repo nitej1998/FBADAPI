@@ -90,10 +90,11 @@ def login():
 @app.route("/create-advisement-inputs",methods=["GET", "POST"])
 def get_create_ad_inputs():
     responce_dic = {}
+    query = "EXEC GetAdvertiser"
+    responce_dic["Advertiser"] = g.db.execute(query)
     responce_dic["Location"] = session_dic["Location"]
-    responce_dic["Advertiser"] = session_dic["Advertiser"]
     responce_dic["AdCategory"] = session_dic["AdCategory"]
-    responce_dic["FbKeyWord"] = session_dic["FbKeyWord"]
+    # responce_dic["FbKeyWord"] = session_dic["FbKeyWord"]
     responce_dic["FbStatus"] = session_dic["FbStatus"]
     return jsonify(responce_dic)
 
@@ -102,8 +103,23 @@ def create_advisement():
     data = request.form
     data = data.to_dict()
     data = json.loads(data['file'])
-    query = "EXEC InsertAdvisement @UserId = ?,@AdName = ?,@AdId = ?,@AdvertiserId = ?,@LocationId = ?,@AdCategoryId = ?,@FbKeyWordId = ?,@StatusId = ?,@UniqueAtId = ?,@UniqueAtCreative = ?"
-    values = (data["UserId"],data["AdName"],data["AdId"],data["AdvertiserId"],data["LocationId"],data["AdCategoryId"],data["FbKeyWordId"],data["StatusId"],data["UniqueAtId"],data["UniqueAtCreative"])
+    # advertiser_dic = session_dic["Advertiser"]
+    # query = "EXEC GetAdvertiser"
+    # advertiser_dic = g.db.execute(query)
+    # advertiser_dic = [{i["LocationName"]:i["LocationId"]}  for i in advertiser_dic]
+    # if data["AdCategoryId"] in advertiser_dic:
+    #     data["AdCategoryId"] = advertiser_dic[data["AdCategoryId"]]
+    # else:
+    #     query = "Insert Into [Advertiser] Values (?,1,GETDATE(),GETDATE(),1,1)"
+    #     values = (data["AdCategoryId"],)
+    #     g.db.update(query)
+    #     query = "EXEC GetAdvertiser"
+    #     advertiser_dic = g.db.execute(query)
+    #     advertiser_dic = [{i["LocationName"]:i["LocationId"]}  for i in advertiser_dic]
+    #     data["AdCategoryId"] = advertiser_dic[data["AdCategoryId"]]
+
+    query = "EXEC InsertAdvisement @UserId = ?,@AdName = ?,@AdId = ?,@Advertiser = ?,@LocationId = ?,@AdCategoryId = ?,@FbKeyWordId = ?,@StatusId = ?,@UniqueAtId = ?,@UniqueAtCreative = ?,@FbKeyWord = ?"
+    values = (data["UserId"],data["AdName"],data["AdId"],data["AdvertiserId"],data["LocationId"],data["AdCategoryId"],1,data["StatusId"],data["UniqueAtId"],data["UniqueAtCreative"],data["FbKeyWordId"])
     responce_dic = g.db.execute(query,values,as_dic = True)
     if responce_dic["IsCreated"] == 1:
         logger.info(f"New Advisement created by user {data['UserId']} and Aid is {responce_dic}")
@@ -173,6 +189,7 @@ def get_advisement(dic = {}):
 
 @app.route("/ongoing-team-advisement",methods=["GET","POST"])
 def ongoing_team_advisement():
+    """ returns list on ongoing advisements """
     # data = request.form
     # data = data.to_dict()
     # data = json.loads(data['file'])
@@ -181,6 +198,7 @@ def ongoing_team_advisement():
     
 @app.route("/completed-team-advisement",methods=["GET","POST"])
 def completed_team_advisement():
+    """ returns list on completed advisements """
     # data = request.form
     # data = data.to_dict()
     # data = json.loads(data['file'])
@@ -189,17 +207,19 @@ def completed_team_advisement():
 
 @app.route("/mark-as-complete-advisement",methods=["GET", "POST"])
 def mark_as_complete_advisement():
+    """ marks provided advisement as completed in application Q and returns list on ongoing advisements """
     data = request.form
     data = data.to_dict()
     data = json.loads(data['file'])
     query = "EXEC UpdateMarkAsCompleteAdvisement @UserId = ?,@AId = ?"
-    values = (data["UserId"],data["AId"])
-    g.db.update(query,values,as_dic = True)
+    values = (data["userid"],data["AId"])
+    g.db.update(query,values)
     logger.info("")
-    return dashboardfilter(g.db,data,1,0,False,True,True) # need to add data
-
+    return dashboardfilter(g.db,data,1,0,False,True,True)
+    
 @app.route("/prioritize-advisement",methods=["GET", "POST"])
 def prioritize_advisement():
+    """ prioritize provided advisement in RPA Q and returns list on ongoing advisements """
     data = request.form
     data = data.to_dict()
     data = json.loads(data['file'])
@@ -207,5 +227,42 @@ def prioritize_advisement():
     values = (data["UserId"],data["AId"])
     g.db.update(query,values,as_dic = True)
     logger.info("")
-    return dashboardfilter(g.db,data,1,0,False,True,True) # need to add data
+    return dashboardfilter(g.db,data,1,0,False,True,True)
 
+@app.route('/get-file-names', methods = ["GET", "POST"])
+def file_names():
+    """
+	Input : AId
+
+	Description : will provided all files attached for that plan 
+
+	Output : object consist of file name and file path
+	"""
+    data = request.form
+    data = data.to_dict()
+    data = json.loads(data['file'])
+    query = "Exec [GetFilePathsForAdvisement] @AId=?"
+    values = (data["AId"],)
+
+    myresult = g.db.execute(query,params = values)
+    file_dic={}
+    """ converting all slashs in file path """
+    for file_path in myresult:
+        for i in file_path:
+            if file_path[i] != ' ' and file_path[i] !=None:
+                paths = file_path[i].split(',')
+                for j in paths:
+                    path=j.replace('/','\\')
+                    file_name=j.replace('/','\\').split("\\")[-1]
+                    file_dic[file_name]=path
+            else:
+                pass
+    return jsonify(file_dic)
+
+@app.route('/download-file', methods = ["GET", "POST"])
+def download_file():
+    """ used to download files from FBAD application"""
+    data = request.form
+    data = data.to_dict()
+    data = json.loads(data['file'])
+    return jsonify("will add")

@@ -1,5 +1,14 @@
 {
+    "ShareName": "wmplans",
+    "FileStorageDrive": "S:\\",
+    "StgAccountName": "wmflowstoragestaging",
+    "StgAccountKey": "lSiIhKe891gih81Mbs6QpmSJqJn88oVWVzFhYmbO6dzQPLhH6cQ8nfnYzn5ntv2lGKUoE3t7hMCYLtVfBNrZdw==",
     "Envirolment": "Development",
     "LoggingLevel": "DEBUG",
+    "YourLocalPath": "C:\\Users\\Admin\\LocalDocuments",
+    "Tempzipfolder": "C:\\Users\\Admin\\WMFlowFiles\\temp_zip",
+    "Tempmultiplefilefolder": "C:\\Users\\Admin\\WMFlowFiles\\temp_multiple_file",
+    "Tempzipmultiplefilefolder": "C:\\Users\\Admin\\WMFlowFiles\\temp_zip\\multiple_files",
+    "Tempsinglefile": "C:\\Users\\Admin\\WMFlowFiles\\temp_single_file",
     "Development":"DRIVER={ODBC Driver 17 for SQL Server};SERVER=wmflowdbstg.database.windows.net;DATABASE=FBADLIBRARY;UID=flowdbstg;PWD=$t@g1ngdbFl0w;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30"
-  }
+}

@@ -1,7 +1,12 @@
+import os
+import base64
+import shutil
 import pandas as pd
 from datetime import datetime,timedelta
 
 from .views import session_dic
+from .logger import logger,config_dic
+from .azure import AZURE,getListOfFiles,create_directory_local,share_name
 
 def dashboardfilter(db,dic,module,record_status,for_user = False,advertiser_needed = False,location_needed = False):
     """ will extract data from DB as per the filter applied
@@ -37,7 +42,6 @@ def dashboardfilter(db,dic,module,record_status,for_user = False,advertiser_need
         datefilter = False
     if 'sessionid' in dic:
         dic.pop('sessionid')
-
     
     if "advertiserid" in dic:			
         advertiser_name = session_dic["AdvertiserId"][dic['advertiserid']]
@@ -101,8 +105,8 @@ def dashboardfilter(db,dic,module,record_status,for_user = False,advertiser_need
     if location_needed == True:
         result_dic["Location"] = session_dic["Location"]
     if advertiser_needed == True:
-        result_dic["Advertiser"] = session_dic["Advertiser"]
-
+        query = "EXEC GetAdvertiser"
+        result_dic["Advertiser"] = db.execute(query)
     return result_dic
 
 def scheduling_page_insertion(dic,db):
@@ -203,3 +207,100 @@ def scheduling_page_insertion(dic,db):
     query = "UPDATE Ad SET Modifiedby = ?,ModifiedDate = Getdate(), [ProcessNumber] = CASE when  ProcessNumber = 1 then 2 else ProcessNumber end where Id = ?"
     values = (dic['UserId'],aid)
     db.update(query,values)
+
+def download_file(data , share_name = config_dic["ShareName"],mode = 1):
+    """ used to download files from flow application
+
+    Args:
+        data (dic): code data related to the operation
+        share_name (str, optional): share name in Azure storage. Defaults to config_dic["ShareName"].
+        mode (int, optional): mode specifies the set of operations need to be performed . Defaults to 1.
+                                mode = 1 --> provides blob data of requested file
+                                mode = 2 --> provides local file path of requested file
+                                mode = 3 --> provides blob data of requested local file path
+    """
+
+    az = AZURE()
+    if "file_path" in data:
+        file_paths = data["file_path"]
+    elif "FilePath" in data:
+        file_paths = data["FilePath"]
+
+    """ if there is only one file to download it will convert file to blob data. If request is for more file then will zip all file and convert it to blob  """
+    if len(file_paths)>1:
+
+        """ download request for more than one file """			
+        logger.info("download request for more than one file")
+        listOfFiles = getListOfFiles(str(config_dic["Tempmultiplefilefolder"])+'\\') 
+        
+        """ deleting old files in local folder """
+        if listOfFiles:
+            for i in listOfFiles:
+                os.remove(i)
+                logger.info(f"deleted old file: {i}")
+
+        """ downloading requested files from azure to local folder """
+        for i in file_paths:
+            temp_path=i.split(':')[-1].split('\\')
+            del temp_path[0]
+            temp_path_1='/'.join(temp_path)
+            file_name=temp_path_1.split('/')[-1]
+            del temp_path[-1]
+            dir_name='/'.join(temp_path)
+            local_path=config_dic["Tempmultiplefilefolder"]
+            az.download_file_azure(share_name, dir_name, file_name, local_path)
+            logger.info(f"Downloaded azure file {dir_name} + {file_name} to local path {local_path} ")
+
+        """ deleting old zips in local folder """
+        listOfFiles = getListOfFiles(str(config_dic["Tempzipfolder"]+'\\'))               
+        if (listOfFiles):
+            for i in listOfFiles:
+                os.remove(i)
+                logger.info(f"deleted old zip: {i}")
+
+        output_filename=str(config_dic["Tempzipmultiplefilefolder"])      
+        dir_name=str(config_dic["Tempmultiplefilefolder"])              
+        shutil.make_archive(output_filename, 'zip', dir_name)
+
+        """ zipping files in the folder and blob conversion"""
+        with open(output_filename+str('.zip'), 'rb') as fo: 
+            blob = base64.b64encode(fo.read())
+            fo.close()
+        return (blob)
+
+    else:
+        """ request to download single file """
+        logger.info("request to download single file")
+        listOfFiles = getListOfFiles(config_dic["Tempsinglefile"]+'\\')          
+        
+        """ deleting old files in local folder """
+        if listOfFiles:
+            for i in listOfFiles:
+                os.remove(i)
+                logger.info(f"deleted old file: {i}")
+        
+        local_path = config_dic["Tempsinglefile"]
+            
+        if mode == 3:
+            """ blob conversion"""
+            data = open(file_paths[0], "rb").read()
+            blob = base64.b64encode(data)
+            return blob
+        else:
+            temp_path=file_paths[0].split(':')[-1].split('\\')
+            del temp_path[0]
+            temp_path_1='/'.join(temp_path)
+            file_name=temp_path_1.split('/')[-1]
+            del temp_path[-1]
+            dir_name='/'.join(temp_path)
+            
+            """ downloading requested files from azure to local folder """
+            az.download_file_azure(share_name, dir_name, file_name, local_path)
+            
+            if mode == 1:
+                """ blob conversion"""
+                data = open(local_path +'\\'+str(file_name), "rb").read()
+                blob = base64.b64encode(data)
+                return blob
+            else:
+                return (local_path +'\\'+str(file_name))
