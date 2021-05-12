@@ -200,7 +200,8 @@ def mark_as_complete_advisement():
     values = (data["userid"],data["AId"])
     g.db.update(query,values)
     logger.info("")
-    return dashboardfilter(g.db,data,1,0,False,True,True)
+    responce_dic = dashboardfilter(g.db,{},1,0,False,True,True)
+    return jsonify(responce_dic)
     
 @app.route("/prioritize-advisement",methods=["GET", "POST"])
 def prioritize_advisement():
