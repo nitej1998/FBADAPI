@@ -211,9 +211,10 @@ def prioritize_advisement():
     data = json.loads(data['file'])
     query = "EXEC UpdatePrioritizeAdvisement @UserId = ?,@AId = ?"
     values = (data["UserId"],data["AId"])
-    g.db.update(query,values,as_dic = True)
+    g.db.update(query,values)
     logger.info("")
-    return dashboardfilter(g.db,data,1,0,False,True,True)
+    responce_dic = dashboardfilter(g.db,{},1,0,False,True,True)
+    return jsonify(responce_dic)
 
 @app.route('/get-file-names', methods = ["GET", "POST"])
 def file_names():

@@ -69,7 +69,6 @@ def dashboardfilter(db,dic,module,record_status,for_user = False,advertiser_need
             query = 'EXEC GetOngoingadvisement'	
         else:
             query = 'EXEC GetCompletedadvisement'
-    print('1111111111111111111')
     df = db.execute(query,as_dataframe=True)
     original_columns = list(df.columns)
     if df.empty == False:
@@ -100,17 +99,14 @@ def dashboardfilter(db,dic,module,record_status,for_user = False,advertiser_need
         if datefilter == True:
             df = df[df["startdate"].isin(pd.date_range(start_date, end_date))]		
 
-    print('333333333333333')                        
     df.columns = original_columns
     data = df.to_dict(orient='records') 
     result_dic["Records"] = data
-    print('4444444444444444444')
     if location_needed == True:
         result_dic["Location"] = session_dic["Location"]
     if advertiser_needed == True:
         query = "EXEC GetAdvertiser"
         result_dic["Advertiser"] = db.execute(query)
-    print('5555555555555555555555')
     return result_dic
 
 def scheduling_page_insertion(dic,db):
