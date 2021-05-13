@@ -207,7 +207,10 @@ def scheduling_page_insertion(dic,db):
     query = "UPDATE Ad SET Modifiedby = ?,ModifiedDate = Getdate(), [ProcessNumber] = CASE when  ProcessNumber = 1 then 2 else ProcessNumber end where Id = ?"
     values = (dic['UserId'],aid)
     db.update(query,values)
-
+    query = "exec UpdateAdvisementStatus @AId = ?, @UniqueId = 1120,@Comments = 'Scheduling Advisement Created', @CreatedBy = ?"
+    values = (aid,dic['UserId'])
+    db.update(query,values)
+    
 def download_file(data , share_name = config_dic["ShareName"],mode = 1):
     """ used to download files from flow application
 
