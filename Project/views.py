@@ -162,7 +162,11 @@ def get_advisement(dic={}):
                                             "FbKeyWord": advisement_dic["FbKeyWord"],
                                             "Status": advisement_dic["Status"],
                                             "UniqueAtCreative": advisement_dic["UniqueAtCreative"],
-                                            "UniqueAtId": advisement_dic["UniqueAtId"]}
+                                            "UniqueAtId": advisement_dic["UniqueAtId"],
+                                            "LocationId": advisement_dic["LocationId"],
+                                            "StatusId": advisement_dic["StatusId"],
+                                            "AdCategoryId": advisement_dic["AdCategoryId"],
+                                        }
 
     if int(advisement_dic["ProcessNumber"] > 1):
         responce_dic["Schedule Advisement"]["Data"] = {
