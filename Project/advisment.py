@@ -2,23 +2,24 @@ import os
 import base64
 import shutil
 import pandas as pd
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 
 from .views import session_dic
-from .logger import logger,config_dic
+from .logger import logger, config_dic
 
-# from .azure import AZURE,getListOfFiles,create_directory_local,share_name
+# from .azure import AZURE, getListOfFiles, create_directory_local, share_name
 
-def dashboardfilter(db,dic,module,record_status,for_user = False,advertiser_needed = False,location_needed = False):
+
+def dashboardfilter(db, dic, module, record_status, for_user=False, advertiser_needed=False, location_needed=False):
     """ will extract data from DB as per the filter applied
 
     Args:
-        dic ([dic]): object consist of applied filters 
-        module ([int]): 1:planning,2:scheduling,3:tracking,4:reporting
-        record_status ([int]): 0:Ongoing,1:Completed
+        dic ([dic]): object consist of applied filters
+        module ([int]): 1:planning, 2:scheduling, 3:tracking, 4:reporting
+        record_status ([int]): 0:Ongoing, 1:Completed
         for_user (bool, optional): if for a specific user userid.Defaults to False.
-        client_needed(bool, optional): if True will return client dropdown also 
-        brand_needed(bool, optional): if True will return brand dropdown also 
+        client_needed(bool, optional): if True will return client dropdown also
+        brand_needed(bool, optional): if True will return brand dropdown also
 
     Returns:
         [type]: [description]
@@ -33,23 +34,23 @@ def dashboardfilter(db,dic,module,record_status,for_user = False,advertiser_need
     # if for_user == False:
     #     dic.pop('userid')
     result_dic = {}
-    if 'startdate'  in dic:
+    if 'startdate' in dic:
         datefilter = True
-        start_date =datetime.strptime(dic['startdate'],'%Y-%m-%d')
-        end_date = datetime.strptime(dic['enddate'],'%Y-%m-%d')
+        start_date = datetime.strptime(dic['startdate'], '%Y-%m-%d')
+        end_date = datetime.strptime(dic['enddate'], '%Y-%m-%d')
         dic.pop('startdate')
         dic.pop('enddate')
     else:
         datefilter = False
     if 'sessionid' in dic:
         dic.pop('sessionid')
-    
-    if "advertiserid" in dic:			
+
+    if "advertiserid" in dic:
         advertiser_name = session_dic["AdvertiserId"][dic['advertiserid']]
-        dic['advertisername'] =   f'"{advertiser_name}"'  
+        dic['advertisername'] = f'"{advertiser_name}"'
         dic.pop('advertiserid')
 
-    if "locationid" in dic:			
+    if "locationid" in dic:
         location_name = session_dic["LocationId"][dic['locationid']]
         dic['locationname'] = f'"{location_name}"'
         dic.pop('locationid')
@@ -66,50 +67,51 @@ def dashboardfilter(db,dic,module,record_status,for_user = False,advertiser_need
 
     if module == 1:
         if record_status == 0:
-            query = 'EXEC GetOngoingadvisement'	
+            query = 'EXEC GetOngoingadvisement'
         else:
             query = 'EXEC GetCompletedadvisement'
-    df = db.execute(query,as_dataframe=True)
+    df = db.execute(query, as_dataframe=True)
     original_columns = list(df.columns)
-    if df.empty == False:
+    if df.empty is False:
         print('222222222222222222')
-        df["StartDate"] = pd.to_datetime(df["StartDate"],format = '%d/%m/%Y %H:%M')
+        df["StartDate"] = pd.to_datetime(df["StartDate"], format='%d/%m/%Y %H:%M')
         df["StartDate"] = df["StartDate"].astype(str)
-        new = df["StartDate"].str.split(":", n = 2, expand = True)
-        df["StartDate"] = new[0].str.cat(new[1], sep =":")
-        
-        if record_status != 0:
-            df["EndDate"] = pd.to_datetime(df["EndDate"],format = '%d/%m/%Y %H:%M')
-            df["EndDate"] = df["EndDate"].astype(str)
-            new = df["EndDate"].str.split(":", n = 2, expand = True)
-            df["EndDate"] = new[0].str.cat(new[1], sep =":")
+        new = df["StartDate"].str.split(":", n=2, expand=True)
+        df["StartDate"] = new[0].str.cat(new[1], sep=":")
 
-        df.columns= df.columns.str.lower()
+        if record_status != 0:
+            df["EndDate"] = pd.to_datetime(df["EndDate"], format='%d/%m/%Y %H:%M')
+            df["EndDate"] = df["EndDate"].astype(str)
+            new = df["EndDate"].str.split(":", n=2, expand=True)
+            df["EndDate"] = new[0].str.cat(new[1], sep=":")
+
+        df.columns = df.columns.str.lower()
         filter_query = ' & '.join(['{}=={}'.format(k, v) for k, v in dic.items()])
-        
+
         if filter_query != '':
             df = df.query(filter_query)
-        
-        if filter_adid == True:
+
+        if filter_adid:
             df = df[df['campaignid'].str.contains(adid)]
 
-        if filter_adname == True:
+        if filter_adname:
             df = df[df['campaignname'].str.contains(adname)]
-                
-        if datefilter == True:
-            df = df[df["startdate"].isin(pd.date_range(start_date, end_date))]		
+
+        if datefilter:
+            df = df[df["startdate"].isin(pd.date_range(start_date, end_date))]
 
     df.columns = original_columns
-    data = df.to_dict(orient='records') 
+    data = df.to_dict(orient='records')
     result_dic["Records"] = data
-    if location_needed == True:
+    if location_needed:
         result_dic["Location"] = session_dic["Location"]
-    if advertiser_needed == True:
+    if advertiser_needed:
         query = "EXEC GetAdvertiser"
         result_dic["Advertiser"] = db.execute(query)
     return result_dic
 
-def scheduling_page_insertion(dic,db):
+
+def scheduling_page_insertion(dic, db):
     """update a report as per the inputs provided in Scheduling tab at UI level
         schedulemethod --> 1 then it is one time schedule
         schedulemethod --> 2 then it is recurring schdule
@@ -124,22 +126,22 @@ def scheduling_page_insertion(dic,db):
     onetimevalue = dic["OneTimeValue"]
     counter = 0
     uniqueid = str(aid) + '_0'
-    
-    if onetimevalue == True:
-        query = "INSERT INTO SchedulingAd([AId],[ScheduleMethod],[SD],[ED],[IsRPAProcessed],[Counter],[UniqueId],[CreatedBy],[ModifiedBy]) VALUES(?,?,?,?,?,?,?,?,?)"
-        values = (dic['AId'],"OneTime",dic['SD'],dic['ED'],0,counter,uniqueid,dic['UserId'],dic['UserId'])
+
+    if onetimevalue:
+        query = "INSERT INTO SchedulingAd([AId], [ScheduleMethod], [SD], [ED], [IsRPAProcessed], [Counter], [UniqueId], [CreatedBy], [ModifiedBy]) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        values = (dic['AId'], "OneTime", dic['SD'], dic['ED'], 0, counter, uniqueid, dic['UserId'], dic['UserId'])
     else:
-        if dic["RecurringMethod"] in ("daily","week"):
-            query = "INSERT INTO SchedulingAd([AId],[ScheduleMethod],[RecurringMethod],[SD],[ED],[IsRPAProcessed],[Counter],[UniqueId],[CreatedBy],[ModifiedBy]) VALUES(?,?,?,?,?,?,?,?,?,?)"
-            values = (dic['AId'],"Recurring",dic["RecurringMethod"],dic['SD'],dic['ED'],0,counter,uniqueid,dic['UserId'],dic['UserId'])
+        if dic["RecurringMethod"] in ("daily", "week"):
+            query = "INSERT INTO SchedulingAd([AId], [ScheduleMethod], [RecurringMethod], [SD], [ED], [IsRPAProcessed], [Counter], [UniqueId], [CreatedBy], [ModifiedBy]) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            values = (dic['AId'], "Recurring", dic["RecurringMethod"], dic['SD'], dic['ED'], 0, counter, uniqueid, dic['UserId'], dic['UserId'])
 
         elif dic["RecurringMethod"] == "month":
-            sd = dic["SY"] + '-' + str(session_dic["Months"].index(dic["SM"]) +1).zfill(2) + '-' + '01'
-            em = str(session_dic["Months"].index(dic["EM"]) +1).zfill(2)
+            sd = dic["SY"] + '-' + str(session_dic["Months"].index(dic["SM"]) + 1).zfill(2) + '-' + '01'
+            em = str(session_dic["Months"].index(dic["EM"]) + 1).zfill(2)
             year = int(dic["EY"])
-            if int(em) in (1,3,5,7,8,10,12):
+            if int(em) in (1, 3, 5, 7, 8, 10, 12):
                 ed = '31'
-            elif int(em) in (4,6,9,11):
+            elif int(em) in (4, 6, 9, 11):
                 ed = '30'
             elif (year % 4) == 0:
                 if (year % 100) == 0:
@@ -153,65 +155,66 @@ def scheduling_page_insertion(dic,db):
                 ed = '28'
 
             ed = dic["EY"] + '-' + em + '-' + ed
-            
-            query = "INSERT INTO SchedulingAd([AId],[ScheduleMethod],[RecurringMethod],[SD],[ED],[SM],[EM],[SY],[EY],[IsRPAProcessed],[Counter],[UniqueId],[CreatedBy],[ModifiedBy]) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-            values = (dic['AId'],"Recurring",dic["RecurringMethod"],sd,ed,dic['SM'],dic['EM'],dic['SY'],dic['EY'],0,counter,uniqueid,dic['UserId'],dic['UserId'])
+
+            query = "INSERT INTO SchedulingAd([AId], [ScheduleMethod], [RecurringMethod], [SD], [ED], [SM], [EM], [SY], [EY], [IsRPAProcessed], [Counter], [UniqueId], [CreatedBy], [ModifiedBy]) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            values = (dic['AId'], "Recurring", dic["RecurringMethod"], sd, ed, dic['SM'], dic['EM'], dic['SY'], dic['EY'], 0, counter, uniqueid, dic['UserId'], dic['UserId'])
 
         elif dic["RecurringMethod"] == "quarter":
-            m = session_dic["Months"].index(dic["SM"]) +1
-            if m in (1,2,3):
+            m = session_dic["Months"].index(dic["SM"]) + 1
+            if m in (1, 2, 3):
                 m = '01'
-            elif m in (4,5,6):
+            elif m in (4, 5, 6):
                 m = '04'
-            elif m in (7,8,9):
+            elif m in (7, 8, 9):
                 m = '07'
-            elif m in (10,11,12):
+            elif m in (10, 11, 12):
                 m = '10'
             sd = dic["SY"] + '-' + m + '-' + '01'
 
-            m = session_dic["Months"].index(dic["EM"]) +1
-            if m in (1,3):
-                m,d = '01','31'
+            m = session_dic["Months"].index(dic["EM"]) + 1
+            if m in (1, 3):
+                m, d = '01', '31'
             elif m == 2:
-                m,d = '01','28'
-            elif m in (4,6):
-                m,d = '04','30'
+                m, d = '01', '28'
+            elif m in (4, 6):
+                m, d = '04', '30'
             elif m == 5:
-                m,d = '04','31'
-            elif m in (7,8):
-                m,d = '07','31'
+                m, d = '04', '31'
+            elif m in (7, 8):
+                m, d = '07', '31'
             elif m == 9:
-                m,d = '09','30'
-            elif m in (10,12):
-                m,d = '10','31'
+                m, d = '09', '30'
+            elif m in (10, 12):
+                m, d = '10', '31'
             elif m == 11:
-                m,d = '10','30'
+                m, d = '10', '30'
             ed = dic["EY"] + '-' + m + '-' + d
 
-            query = "INSERT INTO SchedulingAd([AId],[ScheduleMethod],[RecurringMethod],[SD],[ED],[SM],[EM],[SY],[EY],[IsRPAProcessed],[Counter],[UniqueId],[CreatedBy],[ModifiedBy]) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-            values = (dic['AId'],"Recurring",dic["RecurringMethod"],sd,ed,dic['SM'],dic['EM'],dic['SY'],dic['EY'],0,counter,uniqueid,dic['UserId'],dic['UserId'])
+            query = "INSERT INTO SchedulingAd([AId], [ScheduleMethod], [RecurringMethod], [SD], [ED], [SM], [EM], [SY], [EY], [IsRPAProcessed], [Counter], [UniqueId], [CreatedBy], [ModifiedBy]) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            values = (dic['AId'], "Recurring", dic["RecurringMethod"], sd, ed, dic['SM'], dic['EM'], dic['SY'], dic['EY'], 0, counter, uniqueid, dic['UserId'], dic['UserId'])
 
         elif dic["RecurringMethod"] == "year":
             if dic["YT"] == "calendar":
-                sd = dic["SY"] + '-' + '01'+ '-' + '01'
-                ed = dic["EY"] + '-' + '12'+ '-' + '31'
+                sd = dic["SY"] + '-' + '01' + '-' + '01'
+                ed = dic["EY"] + '-' + '12' + '-' + '31'
             elif dic["YT"] == "financial":
                 sd = dic["SY"] + '-' + '04' + '-' + '01'
                 ed = dic["EY"] + '-' + '03' + '-' + '30'
 
-            query = "INSERT INTO SchedulingAd([AId],[ScheduleMethod],[RecurringMethod],[SD],[ED],[SY],[EY],[YearType],[IsRPAProcessed],[Counter],[UniqueId],[CreatedBy],[ModifiedBy]) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)"
-            values = (dic['AId'],"Recurring",dic["RecurringMethod"],sd,ed,dic['SY'],dic['EY'],dic["YT"],0,counter,uniqueid,dic['UserId'],dic['UserId'])
+            query = "INSERT INTO SchedulingAd([AId], [ScheduleMethod], [RecurringMethod], [SD], [ED], [SY], [EY], [YearType], [IsRPAProcessed], [Counter], [UniqueId], [CreatedBy], [ModifiedBy]) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            values = (dic['AId'], "Recurring", dic["RecurringMethod"], sd, ed, dic['SY'], dic['EY'], dic["YT"], 0, counter, uniqueid, dic['UserId'], dic['UserId'])
 
-    db.update(query,values)
+    db.update(query, values)
 
-    query = "UPDATE Ad SET Modifiedby = ?,ModifiedDate = Getdate(), [ProcessNumber] = CASE when  ProcessNumber = 1 then 2 else ProcessNumber end where Id = ?"
-    values = (dic['UserId'],aid)
-    db.update(query,values)
-    query = "exec UpdateAdvisementStatus @AId = ?, @UniqueId = 1120,@Comments = 'Scheduling Advisement Created', @CreatedBy = ?"
-    values = (aid,dic['UserId'])
-    db.update(query,values)
-    
-def download_file(data , share_name = config_dic["ShareName"],mode = 1):
+    query = "UPDATE Ad SET Modifiedby = ?, ModifiedDate = Getdate(), [ProcessNumber] = CASE when  ProcessNumber = 1 then 2 else ProcessNumber end where Id = ?"
+    values = (dic['UserId'], aid)
+    db.update(query, values)
+    query = "exec UpdateAdvisementStatus @AId = ?, @UniqueId = 1120, @Comments = 'Scheduling Advisement Created', @CreatedBy = ?"
+    values = (aid, dic['UserId'])
+    db.update(query, values)
+
+
+def download_file(data, share_name=config_dic["ShareName"], mode=1):
     """ used to download files from flow application
 
     Args:
@@ -230,12 +233,12 @@ def download_file(data , share_name = config_dic["ShareName"],mode = 1):
         file_paths = data["FilePath"]
 
     """ if there is only one file to download it will convert file to blob data. If request is for more file then will zip all file and convert it to blob  """
-    if len(file_paths)>1:
+    if len(file_paths) > 1:
 
-        """ download request for more than one file """			
+        """ download request for more than one file """
         logger.info("download request for more than one file")
-        listOfFiles = getListOfFiles(str(config_dic["Tempmultiplefilefolder"])+'\\') 
-        
+        listOfFiles = getListOfFiles(str(config_dic["Tempmultiplefilefolder"])+'\\')
+
         """ deleting old files in local folder """
         if listOfFiles:
             for i in listOfFiles:
@@ -244,29 +247,29 @@ def download_file(data , share_name = config_dic["ShareName"],mode = 1):
 
         """ downloading requested files from azure to local folder """
         for i in file_paths:
-            temp_path=i.split(':')[-1].split('\\')
+            temp_path = i.split(':')[-1].split('\\')
             del temp_path[0]
-            temp_path_1='/'.join(temp_path)
-            file_name=temp_path_1.split('/')[-1]
+            temp_path_1 = '/'.join(temp_path)
+            file_name = temp_path_1.split('/')[-1]
             del temp_path[-1]
-            dir_name='/'.join(temp_path)
-            local_path=config_dic["Tempmultiplefilefolder"]
+            dir_name = '/'.join(temp_path)
+            local_path = config_dic["Tempmultiplefilefolder"]
             az.download_file_azure(share_name, dir_name, file_name, local_path)
             logger.info(f"Downloaded azure file {dir_name} + {file_name} to local path {local_path} ")
 
         """ deleting old zips in local folder """
-        listOfFiles = getListOfFiles(str(config_dic["Tempzipfolder"]+'\\'))               
+        listOfFiles = getListOfFiles(str(config_dic["Tempzipfolder"]+'\\'))
         if (listOfFiles):
             for i in listOfFiles:
                 os.remove(i)
                 logger.info(f"deleted old zip: {i}")
 
-        output_filename=str(config_dic["Tempzipmultiplefilefolder"])      
-        dir_name=str(config_dic["Tempmultiplefilefolder"])              
+        output_filename = str(config_dic["Tempzipmultiplefilefolder"])
+        dir_name = str(config_dic["Tempmultiplefilefolder"])
         shutil.make_archive(output_filename, 'zip', dir_name)
 
         """ zipping files in the folder and blob conversion"""
-        with open(output_filename+str('.zip'), 'rb') as fo: 
+        with open(output_filename+str('.zip'), 'rb') as fo:
             blob = base64.b64encode(fo.read())
             fo.close()
         return (blob)
@@ -274,36 +277,36 @@ def download_file(data , share_name = config_dic["ShareName"],mode = 1):
     else:
         """ request to download single file """
         logger.info("request to download single file")
-        listOfFiles = getListOfFiles(config_dic["Tempsinglefile"]+'\\')          
-        
+        listOfFiles = getListOfFiles(config_dic["Tempsinglefile"]+'\\')
+
         """ deleting old files in local folder """
         if listOfFiles:
             for i in listOfFiles:
                 os.remove(i)
                 logger.info(f"deleted old file: {i}")
-        
+
         local_path = config_dic["Tempsinglefile"]
-            
+
         if mode == 3:
             """ blob conversion"""
             data = open(file_paths[0], "rb").read()
             blob = base64.b64encode(data)
             return blob
         else:
-            temp_path=file_paths[0].split(':')[-1].split('\\')
+            temp_path = file_paths[0].split(':')[-1].split('\\')
             del temp_path[0]
-            temp_path_1='/'.join(temp_path)
-            file_name=temp_path_1.split('/')[-1]
+            temp_path_1 = '/'.join(temp_path)
+            file_name = temp_path_1.split('/')[-1]
             del temp_path[-1]
-            dir_name='/'.join(temp_path)
-            
+            dir_name = '/'.join(temp_path)
+
             """ downloading requested files from azure to local folder """
             az.download_file_azure(share_name, dir_name, file_name, local_path)
-            
+
             if mode == 1:
                 """ blob conversion"""
-                data = open(local_path +'\\'+str(file_name), "rb").read()
+                data = open(local_path + '\\' + str(file_name), "rb").read()
                 blob = base64.b64encode(data)
                 return blob
             else:
-                return (local_path +'\\'+str(file_name))
+                return (local_path + '\\' + str(file_name))
