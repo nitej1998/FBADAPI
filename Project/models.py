@@ -191,12 +191,10 @@ query = "EXEC GetLocation"
 session_dic["Location"] = db.execute(query)
 query = "EXEC GetAdCategory"
 session_dic["AdCategory"] = db.execute(query)
-# query = "EXEC GetFbKeyWord"
-# session_dic["FbKeyWord"] = db.execute(query)
 query = "EXEC GetStatus"
 session_dic["FbStatus"] = db.execute(query)
 
-session_dic["Years"] = [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030]
+session_dic["Years"] = [2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030]
 session_dic["Months"] = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 logger.info('Session dic creation completed :)')
