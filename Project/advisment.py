@@ -27,10 +27,11 @@ def dashboardfilter(db, dic, module, record_status, for_user=False, advertiser_n
 
     filter_adid = False
     filter_adname = False
-
     dic = {k.lower(): v for k, v in dic.items()}
-    # userid = dic["userid"]
-    # dic.pop('isdefault')
+    userid = dic["userid"]
+    dic.pop('isdefault')
+    dic.pop('userid')
+
     # if for_user == False:
     #     dic.pop('userid')
     result_dic = {}
@@ -46,13 +47,19 @@ def dashboardfilter(db, dic, module, record_status, for_user=False, advertiser_n
         dic.pop('sessionid')
 
     if "advertiserid" in dic:
-        advertiser_name = session_dic["AdvertiserId"][dic['advertiserid']]
-        dic['advertisername'] = f'"{advertiser_name}"'
+        query = "select [Value] from [Advertiser] where id = ?"
+        values = (dic['advertiserid'],)
+        advertiser_name = db.execute(query,values,as_dic = True)
+        advertiser_name = advertiser_name["Value"]
+        dic['advertiser'] = f'"{advertiser_name}"'
         dic.pop('advertiserid')
 
     if "locationid" in dic:
-        location_name = session_dic["LocationId"][dic['locationid']]
-        dic['locationname'] = f'"{location_name}"'
+        query = "select [Value] from [Location] where id = ?"
+        values = (dic['locationid'],)
+        location_name = db.execute(query,values,as_dic = True)
+        location_name = location_name["Value"]
+        dic['location'] = f'"{location_name}"'
         dic.pop('locationid')
 
     if "adid" in dic:
@@ -73,12 +80,10 @@ def dashboardfilter(db, dic, module, record_status, for_user=False, advertiser_n
     df = db.execute(query, as_dataframe=True)
     original_columns = list(df.columns)
     if df.empty is False:
-        print('222222222222222222')
         df["StartDate"] = pd.to_datetime(df["StartDate"], format='%d/%m/%Y %H:%M')
         df["StartDate"] = df["StartDate"].astype(str)
         new = df["StartDate"].str.split(":", n=2, expand=True)
         df["StartDate"] = new[0].str.cat(new[1], sep=":")
-
         if record_status != 0:
             df["EndDate"] = pd.to_datetime(df["EndDate"], format='%d/%m/%Y %H:%M')
             df["EndDate"] = df["EndDate"].astype(str)
@@ -87,19 +92,14 @@ def dashboardfilter(db, dic, module, record_status, for_user=False, advertiser_n
 
         df.columns = df.columns.str.lower()
         filter_query = ' & '.join(['{}=={}'.format(k, v) for k, v in dic.items()])
-
         if filter_query != '':
             df = df.query(filter_query)
-
         if filter_adid:
-            df = df[df['campaignid'].str.contains(adid)]
-
+            df = df[df['adid'].str.contains(adid)]
         if filter_adname:
-            df = df[df['campaignname'].str.contains(adname)]
-
+            df = df[df['adname'].str.contains(adname)]
         if datefilter:
             df = df[df["startdate"].isin(pd.date_range(start_date, end_date))]
-
     df.columns = original_columns
     data = df.to_dict(orient='records')
     result_dic["Records"] = data

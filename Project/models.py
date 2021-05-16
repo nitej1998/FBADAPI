@@ -200,4 +200,4 @@ session_dic["Months"] = ["January", "February", "March", "April", "May", "June",
 logger.info('Session dic creation completed :)')
 logger.info('Disconnecting database object utilized for session cereation')
 db.close()
-logger.info('dataabse disconnected')
+logger.info('database disconnected')

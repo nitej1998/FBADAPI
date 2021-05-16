@@ -132,7 +132,7 @@ def schedule_advisement():
     data = data.to_dict()
     data = json.loads(data['file'])
     scheduling_page_insertion(data, g.db)
-    responce_dic = get_advisement(dic={"AId": responce_dic['AId']})
+    responce_dic = get_advisement(dic={"AId": data['AId']})
     logger.info('Responce Data:  %s', responce_dic)
     return responce_dic
 
@@ -196,10 +196,10 @@ def get_advisement(dic={}):
 @app.route("/ongoing-team-advisement", methods=["GET", "POST"])
 def ongoing_team_advisement():
     """ returns list on ongoing advisements """
-    # data = request.form
-    # data = data.to_dict()
-    # data = json.loads(data['file'])
-    responce_dic = dashboardfilter(g.db, {}, 1, 0, False, True, True)
+    data = request.form
+    data = data.to_dict()
+    data = json.loads(data['file'])
+    responce_dic = dashboardfilter(g.db, data, 1, 0, False, True, True)
     logger.info('Responce Data:  %s', responce_dic)
     return jsonify(responce_dic)
 
@@ -207,10 +207,10 @@ def ongoing_team_advisement():
 @app.route("/completed-team-advisement", methods=["GET", "POST"])
 def completed_team_advisement():
     """ returns list on completed advisements """
-    # data = request.form
-    # data = data.to_dict()
-    # data = json.loads(data['file'])
-    responce_dic = dashboardfilter(g.db, {}, 1, 1, False, True, True)
+    data = request.form
+    data = data.to_dict()
+    data = json.loads(data['file'])
+    responce_dic = dashboardfilter(g.db, data, 1, 1, False, True, True)
     logger.info('Responce Data:  %s', responce_dic)
     return jsonify(responce_dic)
 
