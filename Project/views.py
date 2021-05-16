@@ -34,7 +34,7 @@ def after_request(response):
 
     logger.info('Responce Status:  %s', response.status)
     logger.info('Responce Headers:  %s', response.headers)
-    logger.info('Responce Data:  %s', response.get_data())
+    # logger.info('Responce Data:  %s', response.get_data())
 
     if response.status_code != 500:
         ts = datetime.now().strftime('[%Y-%b-%d %H: %M]')
@@ -91,6 +91,7 @@ def login():
     query = "EXEC VerifyLogin @UserEmail = ?, @Password = ?"
     values = (data["UserEmail"], data["Password"])
     responce_dic = g.db.execute(query, values, as_dic=True)
+    logger.info('Responce Data:  %s', responce_dic)
     return jsonify(responce_dic)
 
 
@@ -102,6 +103,7 @@ def get_create_ad_inputs():
     responce_dic["Location"] = session_dic["Location"]
     responce_dic["AdCategory"] = session_dic["AdCategory"]
     responce_dic["FbStatus"] = session_dic["FbStatus"]
+    logger.info('Responce Data:  %s', responce_dic)
     return jsonify(responce_dic)
 
 
@@ -116,7 +118,9 @@ def create_advisement():
     responce_dic = g.db.execute(query, values, as_dic=True)
     if responce_dic["IsCreated"] == 1:
         logger.info(f"New Advisement created by user {data['UserId']} and Aid is {responce_dic}")
-        return get_advisement(dic={"AId": responce_dic['AId']})
+        responce_dic = get_advisement(dic={"AId": responce_dic['AId']})
+        logger.info('Responce Data:  %s', responce_dic)
+        return responce_dic
     else:
         logger.info(f"New Advisement Creation failed : ( ")
         return jsonify(False)
@@ -128,7 +132,9 @@ def schedule_advisement():
     data = data.to_dict()
     data = json.loads(data['file'])
     scheduling_page_insertion(data, g.db)
-    return get_advisement(dic={"AId": data['AId']})
+    responce_dic = get_advisement(dic={"AId": responce_dic['AId']})
+    logger.info('Responce Data:  %s', responce_dic)
+    return responce_dic
 
 
 @app.route("/get-advisement", methods=["GET", "POST"])
@@ -183,6 +189,7 @@ def get_advisement(dic={}):
     else:
         responce_dic["Schedule Advisement"]["Data"] = {}
         responce_dic["Schedule Advisement"]["DropDown"] = {"Years": session_dic["Years"], "Months": session_dic["Months"]}
+    logger.info('Responce Data:  %s', responce_dic)
     return jsonify(responce_dic)
 
 
@@ -193,6 +200,7 @@ def ongoing_team_advisement():
     # data = data.to_dict()
     # data = json.loads(data['file'])
     responce_dic = dashboardfilter(g.db, {}, 1, 0, False, True, True)
+    logger.info('Responce Data:  %s', responce_dic)
     return jsonify(responce_dic)
 
 
@@ -203,6 +211,7 @@ def completed_team_advisement():
     # data = data.to_dict()
     # data = json.loads(data['file'])
     responce_dic = dashboardfilter(g.db, {}, 1, 1, False, True, True)
+    logger.info('Responce Data:  %s', responce_dic)
     return jsonify(responce_dic)
 
 
@@ -217,6 +226,7 @@ def mark_as_complete_advisement():
     g.db.update(query, values)
     logger.info("")
     responce_dic = dashboardfilter(g.db, {}, 1, 0, False, True, True)
+    logger.info('Responce Data:  %s', responce_dic)
     return jsonify(responce_dic)
 
 
@@ -231,6 +241,7 @@ def prioritize_advisement():
     g.db.update(query, values)
     logger.info("")
     responce_dic = dashboardfilter(g.db, {}, 1, 0, False, True, True)
+    logger.info('Responce Data:  %s', responce_dic)
     return jsonify(responce_dic)
 
 
@@ -262,6 +273,7 @@ def file_names():
                     file_dic[file_name] = path
             else:
                 pass
+    logger.info('Responce Data:  %s', file_dic)
     return jsonify(file_dic)
 
 
