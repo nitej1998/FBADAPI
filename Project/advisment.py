@@ -168,8 +168,8 @@ def scheduling_page_insertion(dic, db):
                 query = "INSERT INTO SchedulingAd([AId], [ScheduleMethod], [RecurringMethod], [SD], [ED], [SM], [EM], [SY], [EY], [IsRPAProcessed], [Counter], [UniqueId], [CreatedBy], [ModifiedBy]) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 values = (dic['AId'], "Recurring", dic["RecurringMethod"], sd, ed, dic['SM'], dic['EM'], dic['SY'], dic['EY'], 0, counter, uniqueid, dic['UserId'], dic['UserId'])
             else:
-                query = "UPDATE SchedulingAd set [ED] = ?, [ModifiedBy] = ?, [ModifiedDate] = GetDate()) where AId = ?"
-                values = (dic['ED'],dic['UserId'],dic['AId'])
+                query = "UPDATE SchedulingAd set [ED] = ?, [EM] = ?, [EY] = ?, [ModifiedBy] = ?, [ModifiedDate] = GetDate()) where AId = ?"
+                values = (ed,dic['EM'],dic['EY'],dic['UserId'],dic['AId'])
                 
         # elif dic["RecurringMethod"] == "quarter":
         #     m = session_dic["Months"].index(dic["SM"]) + 1
