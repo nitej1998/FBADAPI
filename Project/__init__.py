@@ -19,6 +19,6 @@ app.config['MAIL_PASSWORD'] = '*****'
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 mail = Mail(app)
-app.config['SERVER_NAME'] = str(ip) + ":5000"
+# app.config['SERVER_NAME'] = str(ip) + ":5000"
 cors = CORS(app)
 from Project import views
