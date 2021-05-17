@@ -49,7 +49,7 @@ def dashboardfilter(db, dic, module, record_status, for_user=False, advertiser_n
     if "advertiserid" in dic:
         query = "select [Value] from [Advertiser] where id = ?"
         values = (dic['advertiserid'],)
-        advertiser_name = db.execute(query,values,as_dic = True)
+        advertiser_name = db.execute(query, values, as_dic=True)
         advertiser_name = advertiser_name["Value"]
         dic['advertiser'] = f'"{advertiser_name}"'
         dic.pop('advertiserid')
@@ -57,7 +57,7 @@ def dashboardfilter(db, dic, module, record_status, for_user=False, advertiser_n
     if "locationid" in dic:
         query = "select [Value] from [Location] where id = ?"
         values = (dic['locationid'],)
-        location_name = db.execute(query,values,as_dic = True)
+        location_name = db.execute(query, values, as_dic=True)
         location_name = location_name["Value"]
         dic['location'] = f'"{location_name}"'
         dic.pop('locationid')
@@ -133,7 +133,7 @@ def scheduling_page_insertion(dic, db):
     else:
         query = "SELECT ProcessNumber from Ad where id = ?"
         values = (dic['AId'],)
-        process_number = db.execute(query,values,as_dic = True)
+        process_number = db.execute(query, values, as_dic=True)
         process_number = int(process_number["ProcessNumber"])
         if dic["RecurringMethod"] in ("daily", "week"):
             if process_number == 1:
@@ -141,8 +141,8 @@ def scheduling_page_insertion(dic, db):
                 values = (dic['AId'], "Recurring", dic["RecurringMethod"], dic['SD'], dic['ED'], 0, counter, uniqueid, dic['UserId'], dic['UserId'])
             else:
                 query = "UPDATE SchedulingAd set [ED] = ?, [ModifiedBy] = ?, [ModifiedDate] = GetDate()) where AId = ?"
-                values = (dic['ED'],dic['UserId'],dic['AId'])
-                
+                values = (dic['ED'], dic['UserId'], dic['AId'])
+
         elif dic["RecurringMethod"] == "month":
             sd = dic["SY"] + '-' + str(session_dic["Months"].index(dic["SM"]) + 1).zfill(2) + '-' + '01'
             em = str(session_dic["Months"].index(dic["EM"]) + 1).zfill(2)
@@ -169,8 +169,8 @@ def scheduling_page_insertion(dic, db):
                 values = (dic['AId'], "Recurring", dic["RecurringMethod"], sd, ed, dic['SM'], dic['EM'], dic['SY'], dic['EY'], 0, counter, uniqueid, dic['UserId'], dic['UserId'])
             else:
                 query = "UPDATE SchedulingAd set [ED] = ?, [EM] = ?, [EY] = ?, [ModifiedBy] = ?, [ModifiedDate] = GetDate()) where AId = ?"
-                values = (ed,dic['EM'],dic['EY'],dic['UserId'],dic['AId'])
-                
+                values = (ed, dic['EM'], dic['EY'], dic['UserId'], dic['AId'])
+
         # elif dic["RecurringMethod"] == "quarter":
         #     m = session_dic["Months"].index(dic["SM"]) + 1
         #     if m in (1, 2, 3):

@@ -1,7 +1,8 @@
 # from Project import app
+from logging import exception
 from Project import app
 from flask import jsonify, request, g, make_response, send_from_directory
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,date
 from .logger import logger, get_time
 from .models import DB, session_dic
 from .advisment import dashboardfilter, scheduling_page_insertion
@@ -9,6 +10,8 @@ from .advisment import dashboardfilter, scheduling_page_insertion
 import traceback
 import os
 import json
+import schedule
+import time
 
 
 @app.before_request
@@ -71,6 +74,59 @@ def exceptions(e):
                  request.full_path,
                  tb)
     return ("Internal Server Error", 500)
+
+
+# scheduling Database SP to invoke every day at a some specified time 
+def auto_schedule():
+    try:
+        db = DB()
+        logger.info('auto scheduler activated')
+        query = "select LiveDate from Configuration"
+        old_date = db.execute(query,as_dic=True)
+        old_date = old_date['LiveDate']
+        old_date = 	datetime.strftime(old_date, '%Y-%m-%d')
+
+        od = old_date.split('-')
+        nd = str(date.today()).split('-')
+        if od[0] == nd[0]:
+            year = False
+        else:
+            year = True
+        if od[1] == nd[1]:
+            month = False
+            quater = False
+        else:
+            month = True
+            if month in ['1','5','9']:
+                quater = True
+            else:
+                quater = False
+        if od[2] == od[2]:
+            day = False
+        else:
+            day = True
+
+        query = "UPDATE [Configuration] set [LiveDate] = ?,TriggerWeekly = ?,TriggerMonthly = ?"
+        values = (date,month,year,quater)
+        db.update(query,values)
+
+
+        query = "EXEC [TriggerAutoSchedule]"
+        db.update(query)
+        logger.info('auto scheduler completed')   
+    except Exception as e:
+        logger.info('auto scheduler failed')
+        logger.error(str(e))
+        # msg = Message('Hello', sender = 'yourId@gmail.com', recipients = ['someone1@gmail.com'])
+        # msg.body = "Hello Flask message sent from Flask-Mail"
+        # mail.send(msg)
+
+
+schedule.every().day.at("01:00").do(auto_schedule,'It is 01:00')
+
+# while True:
+#     schedule.run_pending()
+#     time.sleep(60) # wait one minute
 
 
 @app.route('/favicon.ico')
