@@ -36,7 +36,7 @@ def logging_handler():
     returns: logger object
     """
     log_filename = "FB_AD_Logs_" + str(datetime.now().strftime('%d-%m-%Y')) + '.log'
-    log_file_path = str(os.getcwd())+f'\\Log files\\{log_filename}'
+    log_file_path = config_dic["LogFilePath"]+'\\'+ log_filename)
     log_format = '%(asctime)s- %(levelname)-8s- %(filename)s- %(funcName)s- %(lineno)s- %(message)s'
 
     logger = logging.getLogger()
