@@ -10,5 +10,6 @@
     "Tempmultiplefilefolder": "C:\\Users\\Admin\\WMFlowFiles\\temp_multiple_file",
     "Tempzipmultiplefilefolder": "C:\\Users\\Admin\\WMFlowFiles\\temp_zip\\multiple_files",
     "Tempsinglefile": "C:\\Users\\Admin\\WMFlowFiles\\temp_single_file",
-    "Development":"DRIVER={ODBC Driver 17 for SQL Server};SERVER=wmflowdbstg.database.windows.net;DATABASE=FBADLIBRARY;UID=flowdbstg;PWD=$t@g1ngdbFl0w;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30"
+    "Development":"DRIVER={ODBC Driver 17 for SQL Server};SERVER=wmflowdbstg.database.windows.net;DATABASE=FBADLIBRARY;UID=flowdbstg;PWD=$t@g1ngdbFl0w;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30",
+    "Version":"1.0.0"
 }
