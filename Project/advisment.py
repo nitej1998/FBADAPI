@@ -126,16 +126,15 @@ def scheduling_page_insertion(dic, db):
     onetimevalue = dic["OneTimeValue"]
     counter = 0
     uniqueid = str(aid) + '_0'
-
+    query = "SELECT ProcessNumber from Ad where id = ?"
+    values = (dic['AId'],)
+    process_number = db.execute(query, values, as_dic=True)
+    process_number = int(process_number["ProcessNumber"])
+    
     if onetimevalue:
         query = "INSERT INTO SchedulingAd([AId], [ScheduleMethod], [SD], [ED], [IsRPAProcessed], [Counter], [UniqueId], [CreatedBy], [ModifiedBy]) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"
         values = (dic['AId'], "OneTime", dic['SD'], dic['ED'], 0, counter, uniqueid, dic['UserId'], dic['UserId'])
-        process_number = 0
     else:
-        query = "SELECT ProcessNumber from Ad where id = ?"
-        values = (dic['AId'],)
-        process_number = db.execute(query, values, as_dic=True)
-        process_number = int(process_number["ProcessNumber"])
         if dic["RecurringMethod"] in ("daily", "week"):
             if process_number == 1:
                 query = "INSERT INTO SchedulingAd([AId], [ScheduleMethod], [RecurringMethod], [SD], [ED], [IsRPAProcessed], [Counter], [UniqueId], [CreatedBy], [ModifiedBy]) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -184,6 +183,7 @@ def scheduling_page_insertion(dic, db):
         query = "UPDATE Ad SET Modifiedby = ?, ModifiedDate = Getdate(), [ProcessNumber] = 2 end where Id = ?"
         values = (dic['UserId'], aid)
         db.update(query, values)
+
         query = "exec UpdateAdvisementStatus @AId = ?, @UniqueId = 1160, @Comments = 'Scheduling Advisement Update', @CreatedBy = ?"
         values = (aid, dic['UserId'])
         db.update(query, values)
