@@ -181,6 +181,9 @@ def scheduling_page_insertion(dic, db):
         values = (aid, dic['UserId'])
         db.update(query, values)
     else:
+        query = "UPDATE Ad SET Modifiedby = ?, ModifiedDate = Getdate(), [ProcessNumber] = 2 end where Id = ?"
+        values = (dic['UserId'], aid)
+        db.update(query, values)
         query = "exec UpdateAdvisementStatus @AId = ?, @UniqueId = 1160, @Comments = 'Scheduling Advisement Update', @CreatedBy = ?"
         values = (aid, dic['UserId'])
         db.update(query, values)
